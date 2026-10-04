@@ -1,0 +1,6 @@
+# IDE ve İşletim Sistemi Dosyaları
+.idea/
+*.iml
+.DS_Store
+target/
+.mvn/
