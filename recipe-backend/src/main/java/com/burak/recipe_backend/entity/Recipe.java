@@ -16,7 +16,7 @@ public class Recipe {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // ID'nin otomatik 1, 2, 3 diye artmasını sağlar (Auto-increment)
     private Long id;
 
-    @Column(nullable = false, length=40)
+    @Column(nullable = false)
     private String title;
 
     @Column(nullable = false, length = 1000) // İçerik alanı zorunlu ve maksimum 1000 karakter
