@@ -1,4 +1,5 @@
-package com.recipe.backend.model;
+package com.burak.recipe_backend.entity;
+
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

@@ -1,4 +1,4 @@
-package com.recipe.backend.service;
+package com.burak.recipe_backend.service;
 
 import com.recipe.backend.model.Recipe;
 import com.recipe.backend.repository.RecipeRepository;
@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Service // Bu sınıfın bir iş mantığı (Service) bileşeni olduğunu Spring'e söyler
 @RequiredArgsConstructor // Lombok: 'final' olarak tanımlanan alanlar için otomatik constructor üretir
-public class RecipeService {
+public class RecipeService<RecipeRepository> {
 
     private final RecipeRepository recipeRepository;
 
