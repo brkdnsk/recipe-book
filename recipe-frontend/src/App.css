@@ -1,205 +1,72 @@
-:root {
-	--primary: #e05a47;
-	--primary-hover: #c94937;
-	--bg-color: #f7f5ef;
-	--card-bg: #ffffff;
-	--text-main: #2d3748;
-	--text-muted: #718096;
-	--border-color: #e2e8f0;
-	--radius: 14px;
-}
-
+/* Genel Stil ve Arka Plan */
 body {
-	background-color: var(--bg-color);
-	color: var(--text-main);
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-		Arial, sans-serif;
-	margin: 0;
-	padding: 0;
+	background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+	font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	min-height: 100vh;
+	color: #333;
 }
 
-.app-container {
-	max-width: 900px;
-	margin: 50px auto;
-	padding: 0 20px;
+/* Sayfa Giriş Animasyonu */
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
-.app-header {
-	text-align: center;
-	margin-bottom: 40px;
+.animated-container {
+	animation: fadeIn 0.6s ease-out forwards;
 }
 
-.app-header h1 {
-	font-size: 2.8rem;
-	font-weight: 800;
-	color: #1a202c;
-	margin-bottom: 8px;
-	letter-spacing: -0.5px;
-}
-
-.app-header p {
-	color: var(--text-muted);
-	font-size: 1.1rem;
-}
-
-.recipe-form-card {
-	background: var(--card-bg);
-	padding: 35px;
-	border-radius: var(--radius);
-	box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05),
-		0 8px 10px -6px rgba(0, 0, 0, 0.05);
-	margin-bottom: 40px;
-	border: 1px solid var(--border-color);
-}
-
-.recipe-form-card h3 {
-	margin-top: 0;
-	margin-bottom: 24px;
-	font-size: 1.4rem;
-	color: #1a202c;
-	font-weight: 700;
-}
-
-.form-grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 16px;
-}
-
-.form-group {
-	margin-bottom: 4px;
-}
-
-.form-group.full-width {
-	grid-column: span 2;
-}
-
-.form-group input,
-.form-group textarea {
-	width: 100%;
-	padding: 14px 18px;
-	border: 1px solid var(--border-color);
-	border-radius: 10px;
-	font-size: 1rem;
-	background: #faf8f5;
-	transition: all 0.25s ease;
-	box-sizing: border-box;
-	color: var(--text-main);
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-	outline: none;
-	border-color: var(--primary);
-	background: #fff;
-	box-shadow: 0 0 0 4px rgba(224, 90, 71, 0.12);
-}
-
-.form-group textarea {
-	resize: vertical;
-	min-height: 100px;
-}
-
-.submit-btn {
-	background: var(--primary);
-	color: white;
-	border: none;
-	padding: 14px 24px;
-	font-size: 1rem;
-	font-weight: 600;
-	border-radius: 10px;
-	cursor: pointer;
-	transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-	width: 100%;
-	margin-top: 10px;
-	box-shadow: 0 4px 12px rgba(224, 90, 71, 0.3);
-}
-
-.submit-btn:hover {
-	background: var(--primary-hover);
-	box-shadow: 0 6px 16px rgba(224, 90, 71, 0.4);
-}
-
-.submit-btn:active {
-	transform: scale(0.98);
-}
-
-.recipes-section h2 {
-	font-size: 1.6rem;
-	margin-bottom: 24px;
-	color: #1a202c;
-	font-weight: 700;
-}
-
-.recipes-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-	gap: 24px;
-}
-
+/* Şık Kart Tasarımı ve Hover Animasyonları */
 .recipe-card {
-	background: var(--card-bg);
-	border-radius: var(--radius);
-	padding: 24px;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-	border: 1px solid var(--border-color);
-	transition: transform 0.25s ease, box-shadow 0.25s ease;
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
+	transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+	border: none;
+	border-radius: 16px;
+	background: #ffffff;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .recipe-card:hover {
-	transform: translateY(-6px);
-	box-shadow: 0 16px 30px -10px rgba(0, 0, 0, 0.08);
+	transform: translateY(-8px);
+	box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
 }
 
-.recipe-card h3 {
-	margin: 0 0 10px 0;
-	font-size: 1.3rem;
-	color: #1a202c;
-	font-weight: 700;
-}
-
-.recipe-card p {
-	color: var(--text-muted);
-	font-size: 0.95rem;
-	line-height: 1.6;
-	margin: 0 0 20px 0;
-	flex-grow: 1;
-}
-
-.recipe-meta {
-	display: flex;
-	gap: 10px;
-	flex-wrap: wrap;
-	border-top: 1px solid #edf2f7;
-	padding-top: 14px;
-}
-
-.badge {
-	padding: 6px 12px;
+/* Form Kartı */
+.form-card {
+	border: none;
 	border-radius: 20px;
-	font-size: 0.82rem;
+	background: #ffffff;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* Buton Efekti */
+.btn-custom-primary {
+	background: linear-gradient(135deg, #ff6b6b 0%, #ee5253 100%);
+	border: none;
+	border-radius: 10px;
+	padding: 12px 20px;
 	font-weight: 600;
+	color: white;
+	transition: all 0.2s ease;
+	box-shadow: 0 4px 15px rgba(238, 82, 83, 0.3);
 }
 
-.badge.category {
-	background: #fff5f5;
-	color: #e53e3e;
+.btn-custom-primary:hover {
+	background: linear-gradient(135deg, #ee5253 0%, #ff4757 100%);
+	transform: translateY(-2px);
+	box-shadow: 0 6px 20px rgba(238, 82, 83, 0.4);
+	color: white;
 }
 
-.badge.time {
-	background: #ebf8ff;
-	color: #3182ce;
-}
-
-.empty-state {
-	text-align: center;
-	padding: 50px 20px;
-	color: var(--text-muted);
-	background: var(--card-bg);
-	border-radius: var(--radius);
-	border: 2px dashed var(--border-color);
-	font-size: 1.05rem;
+/* Badge (Etiket) Tasarımları */
+.custom-badge {
+	padding: 6px 14px;
+	border-radius: 30px;
+	font-size: 0.85rem;
+	font-weight: 600;
 }
