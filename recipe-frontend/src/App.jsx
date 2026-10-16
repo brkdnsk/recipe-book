@@ -1,122 +1,195 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import axios from "axios";
+import { useEffect, useState } from "react";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+	const [recipes, setRecipes] = useState([]);
+	const [form, setForm] = useState({
+		title: "",
+		description: "",
+		category: "",
+		prepTimeMinutes: "",
+	});
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+	// Tarifler Backend'den Çekilir
+	const fetchRecipes = async () => {
+		try {
+			const response = await axios.get("http://localhost:8080/api/recipes");
+			setRecipes(response.data);
+		} catch (error) {
+			console.error("Tarifler yüklenirken hata oluştu:", error);
+		}
+	};
 
-      <div className="ticks"></div>
+	useEffect(() => {
+		fetchRecipes();
+	}, []);
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+	// Form Gönderildiğinde Yeni Tarif Eklenir
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		try {
+			await axios.post("http://localhost:8080/api/recipes", {
+				...form,
+				prepTimeMinutes: Number(form.prepTimeMinutes),
+			});
+			setForm({
+				title: "",
+				description: "",
+				category: "",
+				prepTimeMinutes: "",
+			});
+			fetchRecipes(); // Listeyi güncelle
+		} catch (error) {
+			console.error("Tarif eklenirken hata oluştu:", error);
+		}
+	};
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+	return (
+		<div
+			style={{
+				maxWidth: "800px",
+				margin: "40px auto",
+				fontFamily: "sans-serif",
+				padding: "20px",
+			}}
+		>
+			<h1>🍳 Tarif Defterim (Recipe App)</h1>
+
+			{/* Tarif Ekleme Formu */}
+			<form
+				onSubmit={handleSubmit}
+				style={{
+					background: "#f9f9f9",
+					padding: "20px",
+					borderRadius: "8px",
+					marginBottom: "30px",
+					boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+				}}
+			>
+				<h3>Yeni Tarif Ekle</h3>
+				<div style={{ marginBottom: "10px" }}>
+					<input
+						type="text"
+						placeholder="Tarif Adı (örn. Menemen)"
+						value={form.title}
+						onChange={(e) => setForm({ ...form, title: e.target.value })}
+						required
+						style={{
+							width: "100%",
+							padding: "8px",
+							boxSizing: "border-box",
+						}}
+					/>
+				</div>
+				<div style={{ marginBottom: "10px" }}>
+					<textarea
+						placeholder="Açıklama"
+						value={form.description}
+						onChange={(e) =>
+							setForm({ ...form, description: e.target.value })
+						}
+						style={{
+							width: "100%",
+							padding: "8px",
+							boxSizing: "border-box",
+						}}
+					/>
+				</div>
+				<div style={{ marginBottom: "10px" }}>
+					<input
+						type="text"
+						placeholder="Kategori (örn. Kahvaltı)"
+						value={form.category}
+						onChange={(e) =>
+							setForm({ ...form, category: e.target.value })
+						}
+						style={{
+							width: "100%",
+							padding: "8px",
+							boxSizing: "border-box",
+						}}
+					/>
+				</div>
+				<div style={{ marginBottom: "10px" }}>
+					<input
+						type="number"
+						placeholder="Hazırlık Süresi (dakika)"
+						value={form.prepTimeMinutes}
+						onChange={(e) =>
+							setForm({ ...form, prepTimeMinutes: e.target.value })
+						}
+						style={{
+							width: "100%",
+							padding: "8px",
+							boxSizing: "border-box",
+						}}
+					/>
+				</div>
+				<button
+					type="submit"
+					style={{
+						background: "#4CAF50",
+						color: "white",
+						padding: "10px 15px",
+						border: "none",
+						borderRadius: "4px",
+						cursor: "pointer",
+					}}
+				>
+					Tarif Ekle
+				</button>
+			</form>
+
+			{/* Tarif Listesi */}
+			<h2>Kayıtlı Tarifler</h2>
+			{recipes.length === 0 ? (
+				<p>Henüz tarif eklenmemiş.</p>
+			) : (
+				<ul style={{ listStyle: "none", padding: 0 }}>
+					{recipes.map((recipe) => (
+						<li
+							key={recipe.id}
+							style={{
+								background: "#fff",
+								border: "1px solid #ddd",
+								padding: "15px",
+								borderRadius: "8px",
+								marginBottom: "15px",
+								boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+							}}
+						>
+							<h3 style={{ margin: "0 0 5px 0", color: "#333" }}>
+								{recipe.title}
+							</h3>
+							<p style={{ margin: "0 0 10px 0", color: "#666" }}>
+								{recipe.description}
+							</p>
+							<small
+								style={{
+									background: "#e0e0e0",
+									padding: "3px 8px",
+									borderRadius: "4px",
+									marginRight: "10px",
+								}}
+							>
+								Kategori: {recipe.category}
+							</small>
+							<small
+								style={{
+									background: "#e0e0e0",
+									padding: "3px 8px",
+									borderRadius: "4px",
+								}}
+							>
+								Süre: {recipe.prepTimeMinutes} dk
+							</small>
+						</li>
+					))}
+				</ul>
+			)}
+		</div>
+	);
 }
 
-export default App
+export default App;
