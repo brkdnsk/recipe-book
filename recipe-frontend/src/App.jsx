@@ -4,6 +4,8 @@ import "./App.css";
 
 function App() {
 	const [recipes, setRecipes] = useState([]);
+	const [searchTerm, setSearchTerm] = useState("");
+	const [selectedCategory, setSelectedCategory] = useState("");
 	const [form, setForm] = useState({
 		title: "",
 		description: "",
@@ -43,6 +45,33 @@ function App() {
 		}
 	};
 
+	const handleDelete = async (id) => {
+		if (window.confirm("Bu tarifi silmek istediğinize emin misiniz?")) {
+			try {
+				await axios.delete(`http://localhost:8080/api/recipes/${id}`);
+				fetchRecipes();
+			} catch (error) {
+				console.error("Tarif silinirken hata oluştu:", error);
+			}
+		}
+	};
+
+	// Benzersiz kategorileri dinamik olarak türetme
+	const categories = [
+		"",
+		...new Set(recipes.map((r) => r.category).filter(Boolean)),
+	];
+
+	// Arama ve kategori filtreleme mantığı
+	const filteredRecipes = recipes.filter((recipe) => {
+		const matchesSearch =
+			recipe.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			recipe.description.toLowerCase().includes(searchTerm.toLowerCase());
+		const matchesCategory =
+			selectedCategory === "" || recipe.category === selectedCategory;
+		return matchesSearch && matchesCategory;
+	});
+
 	return (
 		<div className="container py-5 animated-container">
 			{/* Header */}
@@ -52,7 +81,7 @@ function App() {
 					Defterim
 				</h1>
 				<p className="text-muted lead">
-					En lezzetli tariflerinizi modern ve akıcı bir arayüzle yönetin
+					En lezzetli tariflerinizi keşfedin, arayın ve yönetin
 				</p>
 			</div>
 
@@ -143,6 +172,42 @@ function App() {
 					</div>
 				</div>
 
+				{/* Arama ve Filtreleme Bölümü */}
+				<div className="col-12 mb-4">
+					<div className="card border-0 shadow-sm p-4 rounded-4 bg-white">
+						<div className="row g-3">
+							<div className="col-md-8">
+								<div className="input-group input-group-lg">
+									<span className="input-group-text bg-light border-0 text-muted">
+										<i className="bi bi-search"></i>
+									</span>
+									<input
+										type="text"
+										className="form-control bg-light border-0"
+										placeholder="Tarif adı veya açıklamalarda ara..."
+										value={searchTerm}
+										onChange={(e) => setSearchTerm(e.target.value)}
+									/>
+								</div>
+							</div>
+							<div className="col-md-4">
+								<select
+									className="form-select form-select-lg bg-light border-0"
+									value={selectedCategory}
+									onChange={(e) => setSelectedCategory(e.target.value)}
+								>
+									<option value="">Tüm Kategoriler</option>
+									{categories.filter(Boolean).map((cat, index) => (
+										<option key={index} value={cat}>
+											{cat}
+										</option>
+									))}
+								</select>
+							</div>
+						</div>
+					</div>
+				</div>
+
 				{/* Tarif Listesi */}
 				<div className="col-12">
 					<div className="d-flex align-items-center justify-content-between mb-4">
@@ -151,27 +216,36 @@ function App() {
 							Kayıtlı Tarifler
 						</h2>
 						<span className="badge bg-danger rounded-pill px-3 py-2 fs-6">
-							{recipes.length} Tarif
+							{filteredRecipes.length} Tarif Gösteriliyor
 						</span>
 					</div>
 
-					{recipes.length === 0 ? (
+					{filteredRecipes.length === 0 ? (
 						<div className="text-center py-5 bg-white rounded-4 shadow-sm border border-light">
 							<i className="bi bi-inbox display-4 text-muted mb-3 d-block"></i>
 							<p className="text-muted fs-5">
-								Henüz hiç tarif eklenmemiş. İlk tarifini yukarıdan hemen
-								oluştur!
+								Aradığınız kriterlere uygun tarif bulunamadı.
 							</p>
 						</div>
 					) : (
 						<div className="row g-4">
-							{recipes.map((recipe) => (
+							{filteredRecipes.map((recipe) => (
 								<div key={recipe.id} className="col-md-6 col-lg-4">
 									<div className="card recipe-card h-100 p-4 d-flex flex-column justify-content-between">
 										<div>
-											<h4 className="fw-bold text-dark mb-3">
-												{recipe.title}
-											</h4>
+											<div className="d-flex justify-content-between align-items-start mb-3">
+												<h4 className="fw-bold text-dark m-0">
+													{recipe.title}
+												</h4>
+												<button
+													onClick={() => handleDelete(recipe.id)}
+													className="btn btn-outline-danger btn-sm border-0 rounded-circle p-2"
+													title="Tarifi Sil"
+													style={{ width: "36px", height: "36px" }}
+												>
+													<i className="bi bi-trash-fill"></i>
+												</button>
+											</div>
 											<p
 												className="text-muted mb-4"
 												style={{ lineHeight: "1.6" }}
