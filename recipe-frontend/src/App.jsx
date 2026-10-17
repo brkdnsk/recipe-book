@@ -6,6 +6,9 @@ function App() {
 	const [recipes, setRecipes] = useState([]);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [selectedCategory, setSelectedCategory] = useState("");
+
+	// Form ve Düzenleme Durumu
+	const [editingId, setEditingId] = useState(null);
 	const [form, setForm] = useState({
 		title: "",
 		description: "",
@@ -29,26 +32,63 @@ function App() {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		try {
-			await axios.post("http://localhost:8080/api/recipes", {
+			const payload = {
 				...form,
 				prepTimeMinutes: Number(form.prepTimeMinutes),
-			});
+			};
+
+			if (editingId) {
+				// Güncelleme (PUT)
+				await axios.put(
+					`http://localhost:8080/api/recipes/${editingId}`,
+					payload
+				);
+			} else {
+				// Yeni Ekleme (POST)
+				await axios.post("http://localhost:8080/api/recipes", payload);
+			}
+
+			// Formu sıfırla
 			setForm({
 				title: "",
 				description: "",
 				category: "",
 				prepTimeMinutes: "",
 			});
+			setEditingId(null);
 			fetchRecipes();
 		} catch (error) {
-			console.error("Tarif eklenirken hata oluştu:", error);
+			console.error("İşlem sırasında hata oluştu:", error);
 		}
+	};
+
+	const handleEditClick = (recipe) => {
+		setEditingId(recipe.id);
+		setForm({
+			title: recipe.title,
+			description: recipe.description || "",
+			category: recipe.category || "",
+			prepTimeMinutes: recipe.prepTimeMinutes || "",
+		});
+		// Formun olduğu yere yumuşakça kaydır
+		window.scrollTo({ top: 0, behavior: "smooth" });
+	};
+
+	const handleCancelEdit = () => {
+		setEditingId(null);
+		setForm({
+			title: "",
+			description: "",
+			category: "",
+			prepTimeMinutes: "",
+		});
 	};
 
 	const handleDelete = async (id) => {
 		if (window.confirm("Bu tarifi silmek istediğinize emin misiniz?")) {
 			try {
 				await axios.delete(`http://localhost:8080/api/recipes/${id}`);
+				if (editingId === id) handleCancelEdit();
 				fetchRecipes();
 			} catch (error) {
 				console.error("Tarif silinirken hata oluştu:", error);
@@ -56,13 +96,11 @@ function App() {
 		}
 	};
 
-	// Benzersiz kategorileri dinamik olarak türetme
 	const categories = [
 		"",
 		...new Set(recipes.map((r) => r.category).filter(Boolean)),
 	];
 
-	// Arama ve kategori filtreleme mantığı
 	const filteredRecipes = recipes.filter((recipe) => {
 		const matchesSearch =
 			recipe.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -81,18 +119,34 @@ function App() {
 					Defterim
 				</h1>
 				<p className="text-muted lead">
-					En lezzetli tariflerinizi keşfedin, arayın ve yönetin
+					En lezzetli tariflerinizi keşfedin, düzenleyin ve yönetin
 				</p>
 			</div>
 
 			<div className="row justify-content-center">
-				{/* Tarif Ekleme Formu */}
+				{/* Tarif Ekleme / Güncelleme Formu */}
 				<div className="col-lg-8 mb-5">
 					<div className="card form-card p-4 p-md-5">
-						<h3 className="fw-bold mb-4 text-secondary">
-							<i className="bi bi-plus-circle-fill text-danger me-2"></i>{" "}
-							Yeni Tarif Oluştur
-						</h3>
+						<div className="d-flex justify-content-between align-items-center mb-4">
+							<h3 className="fw-bold m-0 text-secondary">
+								<i
+									className={`bi ${
+										editingId
+											? "bi-pencil-square text-warning"
+											: "bi-plus-circle-fill text-danger"
+									} me-2`}
+								></i>
+								{editingId ? "Tarifi Düzenle" : "Yeni Tarif Oluştur"}
+							</h3>
+							{editingId && (
+								<button
+									onClick={handleCancelEdit}
+									className="btn btn-sm btn-outline-secondary rounded-pill px-3"
+								>
+									İptal Et
+								</button>
+							)}
+						</div>
 						<form onSubmit={handleSubmit}>
 							<div className="row g-3">
 								<div className="col-12">
@@ -161,10 +215,22 @@ function App() {
 								<div className="col-12 mt-4">
 									<button
 										type="submit"
-										className="btn btn-custom-primary w-100 py-3"
+										className={`btn w-100 py-3 fw-bold text-white ${
+											editingId
+												? "btn-warning"
+												: "btn-custom-primary"
+										}`}
 									>
-										<i className="bi bi-check2-circle me-2"></i>{" "}
-										Tarifi Kaydet
+										<i
+											className={`bi ${
+												editingId
+													? "bi-check-lg"
+													: "bi-check2-circle"
+											} me-2`}
+										></i>
+										{editingId
+											? "Değişiklikleri Kaydet"
+											: "Tarifi Kaydet"}
 									</button>
 								</div>
 							</div>
@@ -237,14 +303,34 @@ function App() {
 												<h4 className="fw-bold text-dark m-0">
 													{recipe.title}
 												</h4>
-												<button
-													onClick={() => handleDelete(recipe.id)}
-													className="btn btn-outline-danger btn-sm border-0 rounded-circle p-2"
-													title="Tarifi Sil"
-													style={{ width: "36px", height: "36px" }}
-												>
-													<i className="bi bi-trash-fill"></i>
-												</button>
+												<div className="d-flex gap-1">
+													<button
+														onClick={() =>
+															handleEditClick(recipe)
+														}
+														className="btn btn-outline-warning btn-sm border-0 rounded-circle p-2"
+														title="Tarifi Düzenle"
+														style={{
+															width: "36px",
+															height: "36px",
+														}}
+													>
+														<i className="bi bi-pencil-fill"></i>
+													</button>
+													<button
+														onClick={() =>
+															handleDelete(recipe.id)
+														}
+														className="btn btn-outline-danger btn-sm border-0 rounded-circle p-2"
+														title="Tarifi Sil"
+														style={{
+															width: "36px",
+															height: "36px",
+														}}
+													>
+														<i className="bi bi-trash-fill"></i>
+													</button>
+												</div>
 											</div>
 											<p
 												className="text-muted mb-4"
