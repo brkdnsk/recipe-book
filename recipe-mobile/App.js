@@ -13,14 +13,11 @@ import {
 	View,
 } from "react-native";
 
-// NOT: Bilgisayarında test ederken backend'e bağlanmak için:
-// - iOS Simülatör için: http://localhost:8080/api/recipes
-// - Android Emülatör için: http://10.0.2.2:8080/api/recipes
-// - Gerçek cihaz (Expo Go) için bilgisayarının yerel IP adresi (örn: http://192.168.1.50:8080/api/recipes) kullanılmalıdır.
 const API_URL = "http://localhost:8080/api/recipes";
 
 export default function App() {
 	const [recipes, setRecipes] = useState([]);
+	const [editingId, setEditingId] = useState(null);
 	const [form, setForm] = useState({
 		title: "",
 		description: "",
@@ -48,23 +45,55 @@ export default function App() {
 		}
 
 		try {
-			await axios.post(API_URL, {
+			const payload = {
 				...form,
 				prepTimeMinutes: form.prepTimeMinutes
 					? Number(form.prepTimeMinutes)
 					: 0,
-			});
+			};
+
+			if (editingId) {
+				// Güncelleme (PUT)
+				await axios.put(`${API_URL}/${editingId}`, payload);
+			} else {
+				// Yeni Ekleme (POST)
+				await axios.post(API_URL, payload);
+			}
+
 			setForm({
 				title: "",
 				description: "",
 				category: "",
 				prepTimeMinutes: "",
 			});
+			setEditingId(null);
 			fetchRecipes();
 		} catch (error) {
-			console.error("Tarif eklenirken hata oluştu:", error);
-			Alert.alert("Hata", "Tarif eklenemedi.");
+			console.error("İşlem sırasında hata oluştu:", error);
+			Alert.alert("Hata", "İşlem gerçekleştirilemedi.");
 		}
+	};
+
+	const handleEditClick = (recipe) => {
+		setEditingId(recipe.id);
+		setForm({
+			title: recipe.title,
+			description: recipe.description || "",
+			category: recipe.category || "",
+			prepTimeMinutes: recipe.prepTimeMinutes
+				? recipe.prepTimeMinutes.toString()
+				: "",
+		});
+	};
+
+	const handleCancelEdit = () => {
+		setEditingId(null);
+		setForm({
+			title: "",
+			description: "",
+			category: "",
+			prepTimeMinutes: "",
+		});
 	};
 
 	const handleDelete = async (id) => {
@@ -76,6 +105,7 @@ export default function App() {
 				onPress: async () => {
 					try {
 						await axios.delete(`${API_URL}/${id}`);
+						if (editingId === id) handleCancelEdit();
 						fetchRecipes();
 					} catch (error) {
 						console.error("Tarif silinirken hata oluştu:", error);
@@ -89,9 +119,20 @@ export default function App() {
 		<View style={styles.recipeCard}>
 			<View style={styles.cardHeader}>
 				<Text style={styles.recipeTitle}>{item.title}</Text>
-				<TouchableOpacity onPress={() => handleDelete(item.id)}>
-					<Text style={styles.deleteText}>🗑️</Text>
-				</TouchableOpacity>
+				<View style={styles.actionButtons}>
+					<TouchableOpacity
+						onPress={() => handleEditClick(item)}
+						style={styles.actionBtn}
+					>
+						<Text>✏️</Text>
+					</TouchableOpacity>
+					<TouchableOpacity
+						onPress={() => handleDelete(item.id)}
+						style={styles.actionBtn}
+					>
+						<Text>🗑️</Text>
+					</TouchableOpacity>
+				</View>
 			</View>
 			{item.description ? (
 				<Text style={styles.recipeDesc}>{item.description}</Text>
@@ -126,6 +167,17 @@ export default function App() {
 
 				{/* Form Alanı */}
 				<View style={styles.formCard}>
+					<View style={styles.formHeaderRow}>
+						<Text style={styles.formCardTitle}>
+							{editingId ? "Tarifi Düzenle" : "Yeni Tarif Oluştur"}
+						</Text>
+						{editingId && (
+							<TouchableOpacity onPress={handleCancelEdit}>
+								<Text style={styles.cancelText}>İptal Et</Text>
+							</TouchableOpacity>
+						)}
+					</View>
+
 					<TextInput
 						style={styles.input}
 						placeholder="Tarif Adı"
@@ -164,10 +216,15 @@ export default function App() {
 						/>
 					</View>
 					<TouchableOpacity
-						style={styles.submitButton}
+						style={[
+							styles.submitButton,
+							editingId && styles.updateButton,
+						]}
 						onPress={handleSubmit}
 					>
-						<Text style={styles.submitButtonText}>Tarifi Ekle</Text>
+						<Text style={styles.submitButtonText}>
+							{editingId ? "Değişiklikleri Kaydet" : "Tarifi Ekle"}
+						</Text>
 					</TouchableOpacity>
 				</View>
 
@@ -223,6 +280,22 @@ const styles = StyleSheet.create({
 		shadowRadius: 10,
 		elevation: 3,
 	},
+	formHeaderRow: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
+		marginBottom: 12,
+	},
+	formCardTitle: {
+		fontSize: 16,
+		fontWeight: "bold",
+		color: "#4a5568",
+	},
+	cancelText: {
+		color: "#e53e3e",
+		fontWeight: "600",
+		fontSize: 14,
+	},
 	input: {
 		backgroundColor: "#faf8f5",
 		borderRadius: 10,
@@ -252,6 +325,10 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.3,
 		shadowRadius: 8,
 		elevation: 4,
+	},
+	updateButton: {
+		backgroundColor: "#d69e2e",
+		shadowColor: "#d69e2e",
 	},
 	submitButtonText: {
 		color: "#ffffff",
@@ -292,8 +369,12 @@ const styles = StyleSheet.create({
 		color: "#1a202c",
 		flex: 1,
 	},
-	deleteText: {
-		fontSize: 16,
+	actionButtons: {
+		flexDirection: "row",
+		gap: 8,
+	},
+	actionBtn: {
+		padding: 4,
 	},
 	recipeDesc: {
 		fontSize: 14,
