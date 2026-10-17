@@ -30,4 +30,14 @@ public class RecipeService {
         recipeRepository.deleteById(id);
     }
 
+    public Recipe updateRecipe(Long id, Recipe recipeDetails) {
+        Recipe recipe = recipeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tarif bulunamadı: " + id));
+        recipe.setTitle(recipeDetails.getTitle());
+        recipe.setDescription(recipeDetails.getDescription());
+        recipe.setCategory(recipeDetails.getCategory());
+        recipe.setPrepTimeMinutes(recipeDetails.getPrepTimeMinutes());
+        return recipeRepository.save(recipe);
+    }
+
 }
